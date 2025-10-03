@@ -1,0 +1,261 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>webmap201</title>
+       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+       <link rel="stylesheet" href="src/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="src/plugins/L.Control.Pan.css">
+        <link rel="stylesheet" href="src/plugins/Leaflet.PolylineMeasure.css"    >
+        <link rel="stylesheet" href="src/plugins/L.Control.MousePosition.css">
+        <link rel="stylesheet" href="src/plugins/L.Control.Zoomslider.css">
+        <link rel="stylesheet" href="src/plugins/Leaflet-opencage/src/css/L.Control.OpenCageGeocoding.css">
+        <link rel="stylesheet" href="src/plugins/L.Control.Sidebar.css">
+       
+    
+            <script src="src/plugins/L.Control.Pan.js"></script>
+            <script src="src/plugins/Leaflet.PolylineMeasure.js"></script>
+            <script src="src/plugins/L.Control.MousePosition.js"></script>
+            <script src="src/plugins/L.Control.Zoomslider.js"></script>
+            <script src="src/plugins/easy-button.js"></script>
+            <script src="src/plugins/Leaflet-opencage/src/js/L.Control.OpenCageGeocoding.js"></script>
+            <script src="src/plugins/L.Control.Sidebar.js"></script>
+            <script src="src/plugins/leaflet-providers.js"></script>
+        <script src="src/jquery-3.7.1.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+
+                              <style>
+            #mapdiv {height: 100vh;
+            }
+        </style>
+    </head>
+    <body>
+     <div class="container-fluid">
+      <div class="row">
+     <div id="side-bar" class="col-md-3">
+           <button id= "Futa_Library" class ='btn btn-primary btn-block'>ZoomToFuta_Library</button>
+           <button id= 'Button_locate' class ='btn btn-primary btn-block'>Locate</button>
+           <button id= 'Futa_Mini_Pitch' class ='btn btn-primary btn-block'>Futa_Mini_Pitch</button>
+           <button id= 'Foot_path' class ='btn btn-primary btn-block'>Mini Pitch footpath</button>
+           <button id= 'Add_Mini_Pitch' class ='btn btn-primary btn-block'>Mini Pitch to Vector Group</button>
+            <h4>Zoom level: <span id='zoom-level'></span></h4>
+        <h4>Map Center: <span id='map-center'></span></h4>
+        <h4>Mouse Location: <span id='mouse-location'></span></h4>
+        <h4>Image Opacity: <span id ='image-opacity'>0.5 </span></h4>
+        <input Type= 'range' id = 'slide_opacity' min="0" max="1" step="0.1" value="0.5">
+        </div>
+        <div id="mapdiv" class="col-md-12"></div>
+      </div>
+    </div>
+           <script>
+    //        var mymap;
+            var lyrOSM;
+            var myCurrentlocation;
+            var popFuta_Library;
+            var ctrlzoom;
+            var ctrlAttribute
+            var ctrlScale
+            var LyrEsriImagery
+            var LyrTopo
+            var LyrOutdoor
+            var LyrStamen
+            var ctrlPan
+            var ctrlzoomslider
+            var CtrlMousePo
+            var drawnitems
+            var ctrlpolylineMeasure
+            var ctrleasyBotton
+            var ctrlsidebar
+            var sidebar
+            var ctrlsearch
+            var ctrlLayer
+            var objBaseMaps;
+            var objOverlays;
+            var LyrImageOverlay
+            var mrkvector
+            var futaminiPitch
+            var Polyline
+            var polygonbdn
+            var fgl
+            var ctrldraw
+
+            $(document).ready(function(){
+                 mymap = L.map ('mapdiv', {center: [44, -99], zoom:13, zoomControl: false, attributionControl: false});
+                lyrOSM = L.tileLayer.provider('OpenStreetMap.Mapnik');
+                LyrEsriImagery = L.tileLayer.provider('Esri.WorldImagery');
+                LyrTopo = L.tileLayer.provider('OpenTopoMap');
+                LyrStamen = L.tileLayer.provider('Stadia.StamenTerrain');
+                LyrOutdoor = L.tileLayer.provider('Thunderforest.Outdoors');
+                mymap.addLayer(lyrOSM);
+                     futaminiPitch = [7.30472, 5.1380];
+                Polyline = L.polyline([[[7.29798,5.13601],[7.29794,5.13557],[7.29882,5.13555],[7.30334,5.13697],futaminiPitch],
+                                      [[7.30556,5.130],[7.30542, 5.13541],[7.30466,5.13652],[7.30443,5.1375],futaminiPitch]] , 
+                                      {color:'red'})
+                polygonbdn = L.polygon([[[7.30405,5.13822],[7.30495,5.1385],[7.30524,5.13791],[7.30431,5.13761]],[[7.30598,5.1371],
+                                        [7.30581,5.1377],[7.30487,5.13744],[7.30505,5.13685]],[[7.30575,5.13719],[7.30519,5.137],[7.30511,5.1374]]],
+                                       {color: 'black', fillColor:'green', fillOpacity: '0.5'}).addTo(mymap);
+                 mrkvector = L.marker(futaminiPitch, {draggable: true})
+                mrkvector.bindTooltip("Futa Mini Pitch");
+                mrkvector.on('dragend',function(){
+                    mrkvector.setTooltipContent("Current location:" + mrkvector.getLatLng().toString()+"<br>"+
+                    "Distance to mini Pitch:"+mrkvector.getLatLng().distanceTo(futaminiPitch).toFixed(0)+'m');
+                });
+                fgl = L.featureGroup([polygonbdn],[Polyline]).addTo(mymap);
+                drawnitems= new L.featureGroup();
+                drawnitems.addTo(mymap);
+                objBaseMaps = {
+                    "Open Street Maps" : lyrOSM,
+                    "Esri Satellite Map" : LyrEsriImagery,
+                    "Outdoor Map" : LyrOutdoor,
+                    "Stamen Map": LyrStamen,
+                    "Topo": LyrTopo,
+                };
+                LyrImageOverlay = L.imageOverlay('img/futa area.jpg',[[7.316608,5.112553], [7.291578,5.152066]], {opacity:0.5}).addTo(mymap);
+                objOverlays = {"futa map" : LyrImageOverlay,
+                            "pitch Layer": fgl,
+                            "Feature Layer": drawnitems,
+                              };
+                
+                ctrlLayer = L.control.layers(objBaseMaps, objOverlays).addTo(mymap);
+                mymap.fitBounds(LyrImageOverlay.getBounds());
+                
+                popFuta_Library = L.popup({maxWidth:200, keepInView:true});
+                popFuta_Library.setLatLng([7.304164016734329, 5.134542322445485]);
+                popFuta_Library.setContent("<h2>Albert Ilemobade Library</h2><img src='img/Albert.jpeg'width= '200px'>");
+
+                ctrlzoom = L.control.zoom({zoomInText: 'in', zoomOutText: 'out', position: 'bottomright'});
+                ctrlzoom.addTo(mymap);
+                ctrlPan = L.control.pan().addTo(mymap);
+                ctrlzoomslider = L.control.zoomslider({position: 'topright'}).addTo(mymap);
+                ctrlAttribute = L.control.attribution({position: 'bottomleft'}).addTo(mymap);
+                ctrlAttribute.addAttribution('&copy; <a href= "https://cartodb-basemaps-a.global.ssl.fastly.net">Cartodb<a>');
+                ctrlScale = L.control.scale({position: 'bottomleft',
+                imperial: false, maxWidth:200, updateWhenIdle: true
+                                            }).addTo(mymap);
+                CtrlMousePo = L.control.mousePosition().addTo(mymap); 
+                ctrlpolylineMeasure = L.control.polylineMeasure().addTo(mymap);
+                ctrleasyBotton = L.easyButton('fa-location-crosshairs', function()
+                {mymap.locate();
+                }).addTo(mymap);
+                ctrlsidebar = L.control.sidebar('side-bar').addTo(mymap);
+                mymap.addLayer(lyrOSM);
+                sidebar  = L.easyButton('<i class="fa-solid fa-arrow-right-to-bracket"></i>', function()
+                {ctrlsidebar.toggle()});
+                ctrlsearch = L.Control.openCageGeocoding({key: 'a347428387544931a8fcc55afce8c4b4', limit: 10, 
+                                                          position: 'topleft'}).addTo(mymap);
+                
+          ctrldraw = new L.Control.Draw({
+    draw: {
+        circle: false },
+    edit: {
+        featureGroup: drawnitems }
+});
+ctrldraw.addTo(mymap);
+
+              
+                ctrldraw.addTo(mymap);
+                mymap.on('draw:created', function(e){
+                         console.log(e);
+                drawnitems.addLayer(e.layer);
+                         });
+
+                sidebar = L.easyButton({
+        states: [{
+                stateName: 'close',        // name the state
+                icon:      '<i class="fa-solid fa-right-to-bracket"></i>',               // and define its properties
+                title:     'close-sidebar',      // like its title
+                onClick: function(btn, map) {       // and its callback
+                ctrlsidebar.toggle();
+                btn.state('open');
+                }
+            }, {
+                stateName: 'open',
+                icon:      '<i class="fa-solid fa-arrow-left"></i>',
+                title:     'open-sidebar',
+                   onClick: function(btn, map) {       // and its callback
+                ctrlsidebar.toggle();
+                btn.state('close');
+                }
+        }]
+    }).addTo(mymap);
+           
+
+                var myCurrent_time = new Date()
+                mymap.on('contextmenu', function(e){
+                L.marker(e.latlng).addTo(mymap).bindPopup(e.latlng.toString() + "<br>"+myCurrent_time.toString() );
+                });
+                mymap.on('keypress', function(e){
+               if (e.originalEvent.key=='p'){
+                   mymap.locate();
+                   }
+                });
+                              
+                mymap.on('locationfound', function(e) {
+                         console.log(e);
+                    if(myCurrentlocation){
+                    myCurrentlocation.remove();
+                        }
+                myCurrentlocation=L.circle(e.latlng,{radius: e.accuracy/2}).addTo(mymap);
+                mymap.setView(e.latlng, 14);
+                         });
+               mymap.on('locationerror', function(e){
+                   console.log(e);
+                   alert('location was not found');
+               })
+               mymap.on('zoomend', function(){
+                   $("#zoom-level").html(mymap.getZoom())
+               });
+                mymap.on('moveend', function(){
+                   $("#map-center").html(LatlngToArrayString(mymap.getCenter()));
+                });
+                mymap.on('mousemove', function(e){
+                   $("#mouse-location").html(LatlngToArrayString(e.latlng));
+                });
+                $("#Button_locate").click(function(){
+                                         mymap.locate();
+
+                             });
+                $("#slide_opacity").on('input', function(){
+                    $("#image-opacity").html(this.value);
+                    LyrImageOverlay.setOpacity(this.value);
+                });
+                    
+                
+               
+               
+                $("#Futa_Library").click(function(){
+                    mymap.setView([7.304164016734329, 5.134542322445485], 18);
+                    mymap.openPopup(popFuta_Library);
+                });
+                });
+                
+                $("#Futa_Mini_Pitch").click(function(){
+                mymap.setView(futaminiPitch, 17);
+                    mrkvector.setLatLng(futaminiPitch);
+                    mrkvector.setTooltipContent("futa Mini Pitch");
+                });
+               $("#Add_Mini_Pitch").click(function(){
+                   if (fgl.hasLayer(mrkvector)){
+                       fgl.removeLayer(mrkvector);
+                       $("#Add_Mini_Pitch").html("Add Pitch to Layer");
+                   }else{
+                        fgl.addLayer(mrkvector);
+                       $("#Add_Mini_Pitch").html("Remove Pitch  Layer");
+                   }
+               });
+               
+               $("#Foot_path").click(function(){
+                mymap.fitBounds(Polyline.getBounds());
+               });
+                               function LatlngToArrayString(ll){
+                   return "["+ll.lat.toFixed(5)+" "+ll.lng.toFixed(5)+"]"
+               }
+
+            </script>
+        </body>
+    </html>
