@@ -3,7 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <title>webmap201</title>
-        <link rel="stylesheet" href="src/leaflet.css">
+       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
        <link rel="stylesheet" href="src/bootstrap-5.3.8-dist/css/bootstrap.min.css">
        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="src/plugins/L.Control.Pan.css">
@@ -12,7 +13,8 @@
         <link rel="stylesheet" href="src/plugins/L.Control.Zoomslider.css">
         <link rel="stylesheet" href="src/plugins/Leaflet-opencage/src/css/L.Control.OpenCageGeocoding.css">
         <link rel="stylesheet" href="src/plugins/L.Control.Sidebar.css">
-        <script src="src/leaflet-src.js"></script>
+       
+    
             <script src="src/plugins/L.Control.Pan.js"></script>
             <script src="src/plugins/Leaflet.PolylineMeasure.js"></script>
             <script src="src/plugins/L.Control.MousePosition.js"></script>
@@ -22,7 +24,12 @@
             <script src="src/plugins/L.Control.Sidebar.js"></script>
             <script src="src/plugins/leaflet-providers.js"></script>
         <script src="src/jquery-3.7.1.min.js"></script>
-        <style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+
+                              <style>
             #mapdiv {height: 100vh;
             }
         </style>
@@ -60,6 +67,7 @@
             var ctrlPan
             var ctrlzoomslider
             var CtrlMousePo
+            var drawnitems
             var ctrlpolylineMeasure
             var ctrleasyBotton
             var ctrlsidebar
@@ -74,6 +82,7 @@
             var Polyline
             var polygonbdn
             var fgl
+            var ctrldraw
 
             $(document).ready(function(){
                  mymap = L.map ('mapdiv', {center: [44, -99], zoom:13, zoomControl: false, attributionControl: false});
@@ -97,6 +106,8 @@
                     "Distance to mini Pitch:"+mrkvector.getLatLng().distanceTo(futaminiPitch).toFixed(0)+'m');
                 });
                 fgl = L.featureGroup([polygonbdn],[Polyline]).addTo(mymap);
+                drawnitems= new L.featureGroup();
+                drawnitems.addTo(mymap);
                 objBaseMaps = {
                     "Open Street Maps" : lyrOSM,
                     "Esri Satellite Map" : LyrEsriImagery,
@@ -107,6 +118,7 @@
                 LyrImageOverlay = L.imageOverlay('img/futa area.jpg',[[7.316608,5.112553], [7.291578,5.152066]], {opacity:0.5}).addTo(mymap);
                 objOverlays = {"futa map" : LyrImageOverlay,
                             "pitch Layer": fgl,
+                            "Feature Layer": drawnitems,
                               };
                 
                 ctrlLayer = L.control.layers(objBaseMaps, objOverlays).addTo(mymap);
@@ -136,6 +148,21 @@
                 {ctrlsidebar.toggle()});
                 ctrlsearch = L.Control.openCageGeocoding({key: 'a347428387544931a8fcc55afce8c4b4', limit: 10, 
                                                           position: 'topleft'}).addTo(mymap);
+                
+          ctrldraw = new L.Control.Draw({
+    draw: {
+        circle: false },
+    edit: {
+        featureGroup: drawnitems }
+});
+ctrldraw.addTo(mymap);
+
+              
+                ctrldraw.addTo(mymap);
+                mymap.on('draw:created', function(e){
+                         console.log(e);
+                drawnitems.addLayer(e.layer);
+                         });
 
                 sidebar = L.easyButton({
         states: [{
